@@ -20,14 +20,28 @@ import java.text.DateFormat;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
+    public static final String LOG_TAG = "REST_JSON";
+    public static final String URL = "http://date.jsontest.com/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        /*
+        try {
+            String json = readJSonFeed("http://date.jsontest.com/");
+            // NetworkOnMainThreadException
+            Log.d(LOG_TAG, json);
+        } catch (IOException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+            return;
+        }
+        */
+
         final ReadJSONFeedTask task = new ReadJSONFeedTask();
         // task.execute("http://extjs.org.cn/extjs/examples/grid/survey.html");
-        task.execute("http://date.jsontest.com/");
+        task.execute(URL);
         // from http://www.jsontest.com/#date
     }
 
@@ -38,17 +52,18 @@ public class MainActivity extends AppCompatActivity {
             try {
                 return readJSonFeed(urls[0]);
             } catch (IOException ex) {
-                Log.e("SHIT", ex.toString());
+                Log.e(LOG_TAG, ex.toString());
                 cancel(true);
                 return ex.toString();
             }
         }
 
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(String jsonString) {
             final TextView textView = findViewById(R.id.mainResultTextView);
+            Log.d(LOG_TAG, jsonString);
             try {
-                JSONObject jsonObject = new JSONObject(result);
+                JSONObject jsonObject = new JSONObject(jsonString);
                 final String date = jsonObject.getString("date");
                 final String time = jsonObject.getString("time");
                 textView.append(date + ": " + time + "\n");
@@ -86,8 +101,7 @@ public class MainActivity extends AppCompatActivity {
         return stringBuilder.toString();
     }
 
-    private InputStream openHttpConnection(final String urlString)
-            throws IOException {
+    private InputStream openHttpConnection(final String urlString) throws IOException {
         final URL url = new URL(urlString);
         final URLConnection conn = url.openConnection();
         if (!(conn instanceof HttpURLConnection))
